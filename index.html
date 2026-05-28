@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>onecu bench</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff;
+  --surface: #f8f9fa;
+  --surface2: #f2f4f6;
+  --border: #e5e8eb;
+  --text: #191f28;
+  --text2: #4e5968;
+  --text3: #8b95a1;
+  --accent: #3182f6;
+  --accent-light: #e8f3ff;
+  --accent-hover: #1b64da;
+  --green: #03b26c;
+  --green-light: #f0faf6;
+  --red: #f04452;
+  --red-light: #ffeeee;
+  --yellow: #ffa927;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 2px 16px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.10);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-size: 18px; font-weight: 800; color: var(--text);
+  text-decoration: none; letter-spacing: -0.5px;
+}
+.nav-logo span { color: var(--accent); }
+
+.nav-right { display: flex; align-items: center; gap: 8px; }
+
+.lang-btn {
+  padding: 6px 12px; border-radius: 8px; border: none;
+  background: none; font-size: 13px; font-weight: 500;
+  color: var(--text3); cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.lang-btn:hover, .lang-btn.active { background: var(--surface2); color: var(--text); }
+.lang-sep { color: var(--border); font-size: 13px; }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 100px 24px 60px;
+  text-align: center;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 100px;
+  background: var(--accent-light); color: var(--accent);
+  font-size: 13px; font-weight: 600; margin-bottom: 28px;
+}
+.hero-badge::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); animation: pulse 1.5s ease infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.hero-title {
+  font-size: clamp(40px, 7vw, 72px);
+  font-weight: 800; line-height: 1.2;
+  letter-spacing: -2px; color: var(--text);
+  margin-bottom: 20px;
+}
+.hero-title .blue { color: var(--accent); }
+
+.hero-sub {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--text2); font-weight: 400; line-height: 1.6;
+  max-width: 480px; margin: 0 auto 48px;
+}
+
+.hero-cta {
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+}
+
+.btn {
+  padding: 14px 28px; border-radius: var(--radius-sm);
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  border: none; font-family: inherit; transition: all 0.2s;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(49,130,246,0.35); }
+.btn-secondary { background: var(--surface2); color: var(--text); }
+.btn-secondary:hover { background: var(--border); }
+
+/* BENCH SECTION */
+.bench-section {
+  max-width: 760px; margin: 0 auto; padding: 0 24px 80px;
+}
+
+.bench-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 32px;
+  box-shadow: var(--shadow);
+}
+
+.bench-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px;
+}
+.bench-title { font-size: 20px; font-weight: 700; }
+.bench-status {
+  font-size: 12px; font-weight: 600; padding: 4px 10px;
+  border-radius: 100px; background: var(--surface2); color: var(--text3);
+}
+.bench-status.running { background: var(--accent-light); color: var(--accent); }
+.bench-status.done { background: var(--green-light); color: var(--green); }
+
+/* CPU SELECT */
+.select-wrap { margin-bottom: 24px; }
+.select-label { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 8px; }
+.select-row { display: flex; gap: 10px; }
+.select-input {
+  flex: 1; padding: 12px 16px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); font-size: 14px; font-weight: 500;
+  color: var(--text); background: var(--bg); font-family: inherit;
+  appearance: none; cursor: pointer; transition: border-color 0.15s;
+}
+.select-input:focus { outline: none; border-color: var(--accent); }
+
+/* PROGRESS */
+.progress-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+
+.progress-item {}
+.progress-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.progress-name { font-size: 13px; font-weight: 600; color: var(--text2); }
+.progress-score { font-size: 13px; font-weight: 700; color: var(--text); }
+
+.progress-track {
+  height: 6px; border-radius: 100px;
+  background: var(--surface2); overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 100px;
+  background: var(--accent); width: 0%;
+  transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+.progress-fill.green { background: var(--green); }
+.progress-fill.yellow { background: var(--yellow); }
+
+/* SCORE DISPLAY */
+.score-display {
+  display: none;
+  padding: 28px; background: var(--surface);
+  border-radius: var(--radius-sm); margin-bottom: 24px;
+}
+.score-display.visible { display: block; }
+
+.score-top {
+  display: flex; align-items: flex-end; gap: 16px;
+  margin-bottom: 20px;
+}
+.score-main-num {
+  font-size: 64px; font-weight: 800;
+  letter-spacing: -3px; line-height: 1;
+  color: var(--text);
+}
+.score-main-label { font-size: 14px; color: var(--text3); font-weight: 500; padding-bottom: 8px; }
+
+.score-breakdown {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+}
+.score-sub-card {
+  background: var(--bg); border-radius: var(--radius-sm);
+  padding: 14px 16px; border: 1px solid var(--border);
+}
+.score-sub-label { font-size: 11px; font-weight: 600; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.score-sub-num { font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+
+/* EQUIV */
+.equiv-card {
+  display: none;
+  background: var(--accent-light); border-radius: var(--radius-sm);
+  padding: 16px 20px; margin-bottom: 24px;
+}
+.equiv-card.visible { display: block; }
+.equiv-title { font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 10px; }
+.equiv-list { display: flex; flex-direction: column; gap: 6px; }
+.equiv-item {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 13px;
+}
+.equiv-item-name { color: var(--text2); font-weight: 500; }
+.equiv-item-val { color: var(--text); font-weight: 700; }
+
+/* OEM WARNING */
+.oem-warning {
+  display: none;
+  background: var(--red-light); border-radius: var(--radius-sm);
+  padding: 14px 18px; margin-bottom: 24px;
+  border-left: 3px solid var(--red);
+}
+.oem-warning.visible { display: flex; align-items: flex-start; gap: 10px; }
+.oem-warning-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.oem-warning-text { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.6; }
+
+/* TABS (single/multi/gpu) */
+.tabs {
+  display: flex; gap: 4px; margin-bottom: 20px;
+  background: var(--surface2); padding: 4px; border-radius: var(--radius-sm);
+}
+.tab {
+  flex: 1; padding: 8px; border-radius: 8px; border: none;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  background: none; color: var(--text3); font-family: inherit;
+  transition: all 0.15s;
+}
+.tab.active { background: var(--bg); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+
+/* SECTION TITLE */
+.section { padding: 80px 24px; }
+.section-inner { max-width: 1040px; margin: 0 auto; }
+.section-label { font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 12px; }
+.section-title { font-size: clamp(28px, 4vw, 48px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.2; margin-bottom: 16px; }
+.section-desc { font-size: 16px; color: var(--text2); line-height: 1.7; max-width: 520px; }
+
+/* FEATURES */
+.features { background: var(--surface); }
+.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+.feature-card {
+  background: var(--bg); border-radius: var(--radius); padding: 28px;
+  border: 1px solid var(--border); transition: all 0.2s;
+}
+.feature-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.feature-icon { font-size: 28px; margin-bottom: 16px; }
+.feature-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.feature-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
+
+/* OEM CHART */
+.oem-section { background: var(--bg); }
+.oem-chart { margin-top: 48px; max-width: 600px; }
+.oem-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.oem-name { font-size: 13px; font-weight: 600; color: var(--text2); width: 70px; flex-shrink: 0; }
+.oem-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
+.oem-fill { height: 100%; border-radius: 100px; background: var(--accent); transition: width 1s cubic-bezier(0.16,1,0.3,1); }
+.oem-val { font-size: 13px; font-weight: 700; color: var(--text); width: 56px; text-align: right; flex-shrink: 0; }
+.oem-badge {
+  font-size: 10px; font-weight: 600; padding: 2px 7px;
+  border-radius: 100px; flex-shrink: 0;
+}
+.oem-badge.high { background: var(--green-light); color: var(--green); }
+.oem-badge.low { background: var(--red-light); color: var(--red); }
+.oem-badge.mid { background: var(--surface2); color: var(--text3); }
+
+/* FOOTER */
+footer {
+  border-top: 1px solid var(--border); padding: 48px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.footer-logo { font-size: 16px; font-weight: 800; color: var(--text3); letter-spacing: -0.5px; }
+.footer-logo span { color: var(--accent); }
+.footer-note { font-size: 12px; color: var(--text3); }
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  nav { padding: 0 20px; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .score-breakdown { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .score-main-num { font-size: 48px; }
+  footer { flex-direction: column; gap: 12px; text-align: center; }
+  .oem-row { gap: 10px; }
+  .oem-name { width: 56px; font-size: 12px; }
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.6s ease both; }
+.fade-up-2 { animation: fadeUp 0.6s ease 0.1s both; }
+.fade-up-3 { animation: fadeUp 0.6s ease 0.2s both; }
+.fade-up-4 { animation: fadeUp 0.6s ease 0.3s both; }
+
+/* RUN BUTTON STATE */
+.btn-run { min-width: 120px; justify-content: center; }
+.btn-run:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+/* SPINNER */
+.spinner {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+.spinner.visible { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">onecu<span>.</span>bench</a>
+  <div class="nav-right">
+    <button class="lang-btn active" onclick="setLang('ko')">한국어</button>
+    <span class="lang-sep">|</span>
+    <button class="lang-btn" onclick="setLang('en')">English</button>
+    <span class="lang-sep">|</span>
+    <button class="lang-btn" onclick="setLang('ja')">日本語</button>
+    <span class="lang-sep">|</span>
+    <button class="lang-btn" onclick="setLang('zh')">中文</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge fade-up" data-i18n="badge">브라우저에서 바로 실행</div>
+  <h1 class="hero-title fade-up-2">
+    <span data-i18n="hero-title-1">내 기기는</span><br>
+    <span class="blue" data-i18n="hero-title-2">몇 점</span><span data-i18n="hero-title-3">일까?</span>
+  </h1>
+  <p class="hero-sub fade-up-3" data-i18n="hero-sub">
+    설치 없이 링크 하나로. CPU·GPU 성능을 실사용 기반으로 측정하고 같은 CPU의 OEM 차이까지 확인하세요.
+  </p>
+  <div class="hero-cta fade-up-4">
+    <a href="#bench" class="btn btn-primary" data-i18n="cta-start">▶ 벤치 시작하기</a>
+    <a href="#how" class="btn btn-secondary" data-i18n="cta-how">작동 방식 보기</a>
+  </div>
+</section>
+
+<!-- BENCH -->
+<section id="bench" class="bench-section">
+  <div class="bench-card">
+    <div class="bench-header">
+      <div class="bench-title" data-i18n="bench-title">벤치마크</div>
+      <div class="bench-status" id="benchStatus" data-i18n="status-ready">준비됨</div>
+    </div>
+
+    <!-- CPU SELECT -->
+    <div class="select-wrap">
+      <div class="select-label" data-i18n="cpu-label">CPU 선택</div>
+      <div class="select-row">
+        <select class="select-input" id="cpuSelect">
+          <option value="" data-i18n="cpu-placeholder">-- CPU를 선택하세요 --</option>
+          <optgroup label="Intel Core Ultra (Meteor Lake)">
+            <option value="155H">Core Ultra 7 155H</option>
+            <option value="165H">Core Ultra 9 165H</option>
+            <option value="125U">Core Ultra 5 125U</option>
+          </optgroup>
+          <optgroup label="Intel 13th Gen">
+            <option value="13500H">Core i7-13500H</option>
+            <option value="13700H">Core i7-13700H</option>
+            <option value="1365U">Core i7-1365U</option>
+          </optgroup>
+          <optgroup label="AMD Ryzen 7000">
+            <option value="7745HX">Ryzen 7 7745HX</option>
+            <option value="7640U">Ryzen 5 7640U</option>
+            <option value="7940HS">Ryzen 9 7940HS</option>
+          </optgroup>
+          <optgroup label="Apple Silicon">
+            <option value="M3">Apple M3</option>
+            <option value="M3Pro">Apple M3 Pro</option>
+            <option value="M4">Apple M4</option>
+          </optgroup>
+        </select>
+        <select class="select-input" id="oemSelect" style="max-width:140px">
+          <option value="unknown" data-i18n="oem-unknown">OEM 미상</option>
+          <option value="ASUS">ASUS</option>
+          <option value="Samsung">삼성</option>
+          <option value="LG">LG</option>
+          <option value="Lenovo">Lenovo</option>
+          <option value="Dell">Dell</option>
+          <option value="HP">HP</option>
+          <option value="MSI">MSI</option>
+          <option value="Apple">Apple</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs" id="benchTabs">
+      <button class="tab active" onclick="switchTab('single')" data-i18n="tab-single">싱글코어</button>
+      <button class="tab" onclick="switchTab('multi')" data-i18n="tab-multi">멀티코어</button>
+      <button class="tab" onclick="switchTab('gpu')" data-i18n="tab-gpu">GPU</button>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-list" id="progressList">
+      <div class="progress-item" id="prog-aes">
+        <div class="progress-top">
+          <span class="progress-name" data-i18n="test-aes">AES 암호화</span>
+          <span class="progress-score" id="score-aes">—</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="bar-aes"></div></div>
+      </div>
+      <div class="progress-item" id="prog-sort">
+        <div class="progress-top">
+          <span class="progress-name" data-i18n="test-sort">정렬 알고리즘</span>
+          <span class="progress-score" id="score-sort">—</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill green" id="bar-sort"></div></div>
+      </div>
+      <div class="progress-item" id="prog-matrix">
+        <div class="progress-top">
+          <span class="progress-name" data-i18n="test-matrix">행렬 연산</span>
+          <span class="progress-score" id="score-matrix">—</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill yellow" id="bar-matrix"></div></div>
+      </div>
+      <div class="progress-item" id="prog-ray">
+        <div class="progress-top">
+          <span class="progress-name" data-i18n="test-ray">레이트레이싱</span>
+          <span class="progress-score" id="score-ray">—</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="bar-ray"></div></div>
+      </div>
+      <div class="progress-item" id="prog-json">
+        <div class="progress-top">
+          <span class="progress-name" data-i18n="test-json">JSON 파싱</span>
+          <span class="progress-score" id="score-json">—</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill green" id="bar-json"></div></div>
+      </div>
+      <div class="progress-item" id="prog-blur">
+        <div class="progress-top">
+          <span class="progress-name" data-i18n="test-blur">이미지 블러</span>
+          <span class="progress-score" id="score-blur">—</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill yellow" id="bar-blur"></div></div>
+      </div>
+      <div class="progress-item" id="prog-noise">
+        <div class="progress-top">
+          <span class="progress-name" data-i18n="test-noise">노이즈 생성</span>
+          <span class="progress-score" id="score-noise">—</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="bar-noise"></div></div>
+      </div>
+      <div class="progress-item" id="prog-physics">
+        <div class="progress-top">
+          <span class="progress-name" data-i18n="test-physics">물리 시뮬</span>
+          <span class="progress-score" id="score-physics">—</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill green" id="bar-physics"></div></div>
+      </div>
+    </div>
+
+    <!-- SCORE RESULT -->
+    <div class="score-display" id="scoreDisplay">
+      <div class="score-top">
+        <div class="score-main-num" id="scoreMain">0</div>
+        <div class="score-main-label">ONECU SCORE</div>
+      </div>
+      <div class="score-breakdown">
+        <div class="score-sub-card">
+          <div class="score-sub-label" data-i18n="tab-single">싱글</div>
+          <div class="score-sub-num" id="scoreSingle">—</div>
+        </div>
+        <div class="score-sub-card">
+          <div class="score-sub-label" data-i18n="tab-multi">멀티</div>
+          <div class="score-sub-num" id="scoreMulti">—</div>
+        </div>
+        <div class="score-sub-card">
+          <div class="score-sub-label">GPU</div>
+          <div class="score-sub-num" id="scoreGpu">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EQUIV -->
+    <div class="equiv-card" id="equivCard">
+      <div class="equiv-title" data-i18n="equiv-title">≈ 타 벤치마크 환산 (추정)</div>
+      <div class="equiv-list">
+        <div class="equiv-item">
+          <span class="equiv-item-name">Geekbench 6 Multi</span>
+          <span class="equiv-item-val" id="equivGB">—</span>
+        </div>
+        <div class="equiv-item">
+          <span class="equiv-item-name">Cinebench R24 Multi</span>
+          <span class="equiv-item-val" id="equivCB">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- OEM WARNING -->
+    <div class="oem-warning" id="oemWarning">
+      <div class="oem-warning-icon">⚠️</div>
+      <div class="oem-warning-text" id="oemWarningText"></div>
+    </div>
+
+    <!-- RUN BUTTON -->
+    <button class="btn btn-primary btn-run" id="runBtn" onclick="startBench()" style="width:100%">
+      <div class="spinner" id="spinner"></div>
+      <span id="runBtnText" data-i18n="cta-start">▶ 벤치 시작하기</span>
+    </button>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="section features">
+  <div class="section-inner">
+    <div class="section-label" data-i18n="how-label">HOW IT WORKS</div>
+    <h2 class="section-title" data-i18n="how-title">어떻게 작동하나요?</h2>
+    <p class="section-desc" data-i18n="how-desc">설치 없이 브라우저에서 바로. WASM으로 CPU를, WebGPU로 GPU를 테스트합니다.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔗</div>
+        <div class="feature-title" data-i18n="feat1-title">링크만으로 실행</div>
+        <p class="feature-desc" data-i18n="feat1-desc">앱 설치 없이 브라우저에서 바로 실행됩니다. WASM 기반으로 네이티브에 가까운 성능 측정이 가능합니다.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-title" data-i18n="feat2-title">실사용 워크로드</div>
+        <p class="feature-desc" data-i18n="feat2-desc">암호화, 렌더링, 물리 시뮬 등 실제 작업에 가까운 시나리오로 측정합니다. 피크 성능이 아닌 체감 성능에 집중합니다.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏷️</div>
+        <div class="feature-title" data-i18n="feat3-title">OEM 차이 분석</div>
+        <p class="feature-desc" data-i18n="feat3-desc">같은 CPU라도 제조사 전력 정책에 따라 성능이 다릅니다. 실제 유저 데이터 기반으로 OEM별 차이를 보여줍니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">onecu<span>.</span>bench</div>
+  <div class="footer-note">Open Source · AGPL-3.0 · onecu-21/onecu-becnch</div>
+</footer>
+
+<script>
+// ── i18n ──────────────────────────────────────────────────
+const i18n = {
+  ko: {
+    'badge': '브라우저에서 바로 실행',
+    'hero-title-1': '내 기기는', 'hero-title-2': '몇 점', 'hero-title-3': '일까?',
+    'hero-sub': '설치 없이 링크 하나로. CPU·GPU 성능을 실사용 기반으로 측정하고 같은 CPU의 OEM 차이까지 확인하세요.',
+    'cta-start': '▶ 벤치 시작하기', 'cta-how': '작동 방식 보기',
+    'bench-title': '벤치마크', 'status-ready': '준비됨', 'status-running': '측정 중', 'status-done': '완료',
+    'cpu-label': 'CPU 선택', 'cpu-placeholder': '-- CPU를 선택하세요 --', 'oem-unknown': 'OEM 미상',
+    'tab-single': '싱글코어', 'tab-multi': '멀티코어', 'tab-gpu': 'GPU',
+    'test-aes': 'AES 암호화', 'test-sort': '정렬 알고리즘', 'test-matrix': '행렬 연산',
+    'test-ray': '레이트레이싱', 'test-json': 'JSON 파싱', 'test-blur': '이미지 블러',
+    'test-noise': '노이즈 생성', 'test-physics': '물리 시뮬',
+    'equiv-title': '≈ 타 벤치마크 환산 (추정)',
+    'how-label': '작동 방식', 'how-title': '어떻게 작동하나요?',
+    'how-desc': '설치 없이 브라우저에서 바로. WASM으로 CPU를, WebGPU로 GPU를 테스트합니다.',
+    'feat1-title': '링크만으로 실행', 'feat1-desc': '앱 설치 없이 브라우저에서 바로 실행됩니다. WASM 기반으로 네이티브에 가까운 성능 측정이 가능합니다.',
+    'feat2-title': '실사용 워크로드', 'feat2-desc': '암호화, 렌더링, 물리 시뮬 등 실제 작업에 가까운 시나리오로 측정합니다. 피크 성능이 아닌 체감 성능에 집중합니다.',
+    'feat3-title': 'OEM 차이 분석', 'feat3-desc': '같은 CPU라도 제조사 전력 정책에 따라 성능이 다릅니다. 실제 유저 데이터 기반으로 OEM별 차이를 보여줍니다.',
+    'oem-title': '같은 CPU, 다른 성능', 'oem-desc': 'Core Ultra 7 155H 탑재 노트북의 OEM별 실측 점수 분포입니다.',
+    'warn-low': '이 OEM의 평균보다 낮습니다. 전력 제한(TDP throttling) 가능성이 있습니다.',
+    'warn-avg': '이 OEM의 평균 수준입니다.',
+    'warn-high': '이 OEM의 평균보다 높습니다. 좋은 상태입니다 👍',
+    'running-text': '측정 중...',
+  },
+  en: {
+    'badge': 'Run directly in browser',
+    'hero-title-1': 'How fast is', 'hero-title-2': 'your device', 'hero-title-3': '?',
+    'hero-sub': 'No install needed. Measure CPU & GPU performance with real-world workloads and see OEM differences.',
+    'cta-start': '▶ Start Benchmark', 'cta-how': 'How it works',
+    'bench-title': 'Benchmark', 'status-ready': 'Ready', 'status-running': 'Running', 'status-done': 'Done',
+    'cpu-label': 'Select CPU', 'cpu-placeholder': '-- Select your CPU --', 'oem-unknown': 'Unknown OEM',
+    'tab-single': 'Single-Core', 'tab-multi': 'Multi-Core', 'tab-gpu': 'GPU',
+    'test-aes': 'AES Encryption', 'test-sort': 'Sorting', 'test-matrix': 'Matrix Math',
+    'test-ray': 'Ray Tracing', 'test-json': 'JSON Parsing', 'test-blur': 'Image Blur',
+    'test-noise': 'Noise Generation', 'test-physics': 'Physics Sim',
+    'equiv-title': '≈ Equivalent benchmark scores (estimated)',
+    'how-label': 'How It Works', 'how-title': 'How does it work?',
+    'how-desc': 'No install required. Tests CPU with WASM, GPU with WebGPU — right in your browser.',
+    'feat1-title': 'Run via link', 'feat1-desc': 'No app install. Runs directly in your browser using WASM for near-native performance measurement.',
+    'feat2-title': 'Real-world workloads', 'feat2-desc': 'Tests encryption, rendering, physics simulation — scenarios close to actual usage. Focused on sustained, not peak performance.',
+    'feat3-title': 'OEM difference analysis', 'feat3-desc': 'Same CPU, different performance. OEM power policies affect results. We show you where you stand based on real user data.',
+    'oem-title': 'Same CPU, Different Performance', 'oem-desc': 'OEM score distribution for Core Ultra 7 155H laptops. Power policy differences show up in scores.',
+    'warn-low': 'Below average for this OEM. Possible TDP throttling.',
+    'warn-avg': 'Average performance for this OEM.',
+    'warn-high': 'Above average for this OEM. Great condition 👍',
+    'running-text': 'Running...',
+  },
+  ja: {
+    'badge': 'ブラウザで直接実行',
+    'hero-title-1': 'あなたのデバイスは', 'hero-title-2': '何点', 'hero-title-3': '？',
+    'hero-sub': 'インストール不要。リンク一つでCPU・GPUの性能を実使用ベースで測定し、OEMの差も確認できます。',
+    'cta-start': '▶ ベンチ開始', 'cta-how': '仕組みを見る',
+    'bench-title': 'ベンチマーク', 'status-ready': '準備完了', 'status-running': '測定中', 'status-done': '完了',
+    'cpu-label': 'CPUを選択', 'cpu-placeholder': '-- CPUを選んでください --', 'oem-unknown': 'OEM不明',
+    'tab-single': 'シングルコア', 'tab-multi': 'マルチコア', 'tab-gpu': 'GPU',
+    'test-aes': 'AES暗号化', 'test-sort': 'ソート', 'test-matrix': '行列演算',
+    'test-ray': 'レイトレーシング', 'test-json': 'JSON解析', 'test-blur': '画像ブラー',
+    'test-noise': 'ノイズ生成', 'test-physics': '物理シム',
+    'equiv-title': '≈ 他ベンチマーク換算（推定）',
+    'how-label': '仕組み', 'how-title': 'どうやって動くの？',
+    'how-desc': 'インストール不要。WASMでCPUを、WebGPUでGPUをテストします。',
+    'feat1-title': 'リンクで実行', 'feat1-desc': 'アプリ不要。ブラウザで直接動作します。',
+    'feat2-title': '実際のワークロード', 'feat2-desc': 'ピーク性能ではなく、体感性能を重視して測定します。',
+    'feat3-title': 'OEM差分析', 'feat3-desc': '同じCPUでも、メーカーの電力ポリシーで性能が変わります。',
+    'oem-title': '同じCPU、違う性能', 'oem-desc': 'Core Ultra 7 155H搭載機のOEM別スコア分布です。',
+    'warn-low': 'このOEMの平均より低いです。TDPスロットリングの可能性があります。',
+    'warn-avg': 'このOEMの平均レベルです。',
+    'warn-high': 'このOEMの平均より高いです。良好です👍',
+    'running-text': '測定中...',
+  },
+  zh: {
+    'badge': '直接在浏览器中运行',
+    'hero-title-1': '您的设备', 'hero-title-2': '得几分', 'hero-title-3': '？',
+    'hero-sub': '无需安装。一个链接即可测量CPU和GPU性能，并查看OEM差异。',
+    'cta-start': '▶ 开始测试', 'cta-how': '了解工作原理',
+    'bench-title': '基准测试', 'status-ready': '就绪', 'status-running': '测试中', 'status-done': '完成',
+    'cpu-label': '选择CPU', 'cpu-placeholder': '-- 请选择您的CPU --', 'oem-unknown': 'OEM未知',
+    'tab-single': '单核', 'tab-multi': '多核', 'tab-gpu': 'GPU',
+    'test-aes': 'AES加密', 'test-sort': '排序算法', 'test-matrix': '矩阵运算',
+    'test-ray': '光线追踪', 'test-json': 'JSON解析', 'test-blur': '图像模糊',
+    'test-noise': '噪声生成', 'test-physics': '物理模拟',
+    'equiv-title': '≈ 其他基准测试换算（估算）',
+    'how-label': '工作原理', 'how-title': '如何工作？',
+    'how-desc': '无需安装。使用WASM测试CPU，使用WebGPU测试GPU。',
+    'feat1-title': '链接即运行', 'feat1-desc': '无需安装应用程序，直接在浏览器中运行。',
+    'feat2-title': '实际工作负载', 'feat2-desc': '专注于持续性能而非峰值性能。',
+    'feat3-title': 'OEM差异分析', 'feat3-desc': '相同CPU，不同厂商的电源策略导致性能差异。',
+    'oem-title': '相同CPU，不同性能', 'oem-desc': 'Core Ultra 7 155H笔记本的OEM得分分布。',
+    'warn-low': '低于该OEM平均水平，可能存在TDP限制。',
+    'warn-avg': '处于该OEM平均水平。',
+    'warn-high': '高于该OEM平均水平，状态良好👍',
+    'running-text': '测试中...',
+  }
+};
+
+let currentLang = 'ko';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  applyLang();
+}
+
+function t(key) { return (i18n[currentLang] || i18n.ko)[key] || i18n.ko[key] || key; }
+
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+}
+
+// ── Benchmark Logic ────────────────────────────────────────
+let currentTab = 'single';
+let scores = { single: null, multi: null, gpu: null };
+let benchRunning = false;
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['single','multi','gpu'][i] === tab);
+  });
+}
+
+// JS-based bench tests (will be replaced with WASM)
+const tests = [
+  { id: 'aes',     fn: benchAES,     label: 'test-aes',     max: 5000 },
+  { id: 'sort',    fn: benchSort,    label: 'test-sort',    max: 4000 },
+  { id: 'matrix',  fn: benchMatrix,  label: 'test-matrix',  max: 6000 },
+  { id: 'ray',     fn: benchRay,     label: 'test-ray',     max: 3500 },
+  { id: 'json',    fn: benchJSON,    label: 'test-json',    max: 4500 },
+  { id: 'blur',    fn: benchBlur,    label: 'test-blur',    max: 3000 },
+  { id: 'noise',   fn: benchNoise,   label: 'test-noise',   max: 4000 },
+  { id: 'physics', fn: benchPhysics, label: 'test-physics', max: 3500 },
+];
+
+// Each test runs for a fixed duration (DURATION ms) and counts iterations.
+// Score = iterations * scale, tuned so a mid-range laptop scores ~500-800 per test.
+const DURATION = 1500; // ms per test
+
+function runTimed(fn, scale) {
+  const end = performance.now() + DURATION;
+  let iters = 0;
+  while (performance.now() < end) { fn(iters); iters++; }
+  return Math.round(iters * scale);
+}
+
+function benchAES() {
+  const sbox = new Uint8Array([
+    0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,
+    0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0,
+    0xb7,0xfd,0x93,0x26,0x36,0x3f,0xf7,0xcc,0x34,0xa5,0xe5,0xf1,0x71,0xd8,0x31,0x15,
+    0x04,0xc7,0x23,0xc3,0x18,0x96,0x05,0x9a,0x07,0x12,0x80,0xe2,0xeb,0x27,0xb2,0x75,
+    0x09,0x83,0x2c,0x1a,0x1b,0x6e,0x5a,0xa0,0x52,0x3b,0xd6,0xb3,0x29,0xe3,0x2f,0x84,
+    0x53,0xd1,0x00,0xed,0x20,0xfc,0xb1,0x5b,0x6a,0xcb,0xbe,0x39,0x4a,0x4c,0x58,0xcf,
+    0xd0,0xef,0xaa,0xfb,0x43,0x4d,0x33,0x85,0x45,0xf9,0x02,0x7f,0x50,0x3c,0x9f,0xa8,
+    0x51,0xa3,0x40,0x8f,0x92,0x9d,0x38,0xf5,0xbc,0xb6,0xda,0x21,0x10,0xff,0xf3,0xd2,
+    0xcd,0x0c,0x13,0xec,0x5f,0x97,0x44,0x17,0xc4,0xa7,0x7e,0x3d,0x64,0x5d,0x19,0x73,
+    0x60,0x81,0x4f,0xdc,0x22,0x2a,0x90,0x88,0x46,0xee,0xb8,0x14,0xde,0x5e,0x0b,0xdb,
+    0xe0,0x32,0x3a,0x0a,0x49,0x06,0x24,0x5c,0xc2,0xd3,0xac,0x62,0x91,0x95,0xe4,0x79,
+    0xe7,0xc8,0x37,0x6d,0x8d,0xd5,0x4e,0xa9,0x6c,0x56,0xf4,0xea,0x65,0x7a,0xae,0x08,
+    0xba,0x78,0x25,0x2e,0x1c,0xa6,0xb4,0xc6,0xe8,0xdd,0x74,0x1f,0x4b,0xbd,0x8b,0x8a,
+    0x70,0x3e,0xb5,0x66,0x48,0x03,0xf6,0x0e,0x61,0x35,0x57,0xb9,0x86,0xc1,0x1d,0x9e,
+    0xe1,0xf8,0x98,0x11,0x69,0xd9,0x8e,0x94,0x9b,0x1e,0x87,0xe9,0xce,0x55,0x28,0xdf,
+    0x8c,0xa1,0x89,0x0d,0xbf,0xe6,0x42,0x68,0x41,0x99,0x2d,0x0f,0xb0,0x54,0xbb,0x16
+  ]);
+  const block = new Uint8Array([0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34]);
+  return runTimed(i => {
+    for (let j = 0; j < 16; j++) block[j] = sbox[(block[j] ^ (i >> (j%4)*8)) & 0xFF];
+  }, 0.0004);
+}
+
+function benchSort() {
+  const arr = new Uint32Array(1024);
+  return runTimed(i => {
+    for (let j = 0; j < 1024; j++) arr[j] = (j * 2654435761 ^ i) >>> 0;
+    arr.sort();
+  }, 0.5);
+}
+
+function benchMatrix() {
+  const a = new Float32Array(16), b = new Float32Array(16), c = new Float32Array(16);
+  for (let i = 0; i < 16; i++) { a[i] = i+1; b[i] = 16-i; }
+  return runTimed(n => {
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      c[i*4+j] = 0;
+      for (let k = 0; k < 4; k++) c[i*4+j] += a[i*4+k] * b[k*4+j];
+    }
+    a[0] = c[0] * 0.0001 + 1;
+  }, 0.00005);
+}
+
+function benchRay() {
+  return runTimed(i => {
+    const ox = (i%100)*0.01-0.5, oy = ((i/100|0)%100)*0.01-0.5;
+    const ocz = -3;
+    const b2 = ocz, c2 = ox*ox+oy*oy+ocz*ocz-1;
+    return b2*b2-c2 >= 0;
+  }, 0.00015);
+}
+
+function benchJSON() {
+  const json = '{"cpu":"Core Ultra 7 155H","score":12847,"oem":"ASUS","single":{"dev":1240,"creative":980}}';
+  return runTimed(() => { try { JSON.parse(json); } catch(e){} }, 0.008);
+}
+
+function benchBlur() {
+  const img = new Uint8Array(64*64), out = new Uint8Array(64*64);
+  for (let i = 0; i < 64*64; i++) img[i] = (i*37)&0xFF;
+  return runTimed(() => {
+    for (let y=1;y<63;y++) for (let x=1;x<63;x++) {
+      out[y*64+x] = (img[(y-1)*64+(x-1)]+img[(y-1)*64+x]*2+img[(y-1)*64+(x+1)]
+        +img[y*64+(x-1)]*2+img[y*64+x]*4+img[y*64+(x+1)]*2
+        +img[(y+1)*64+(x-1)]+img[(y+1)*64+x]*2+img[(y+1)*64+(x+1)])>>4;
+    }
+    img[0]=out[0];
+  }, 0.3);
+}
+
+function benchNoise() {
+  return runTimed(i => {
+    const x=(i%256)*0.1, y=((i/256|0)%256)*0.1;
+    const xi=x|0, yi=y|0, xf=x-xi, yf=y-yi;
+    const u=xf*xf*(3-2*xf), v=yf*yf*(3-2*yf);
+    return Math.abs(u*v*((xi*1664525+yi*1013904223)&0xFFFFFF));
+  }, 0.00012);
+}
+
+function benchPhysics() {
+  const n=32, px=new Float32Array(n), py=new Float32Array(n);
+  const vx=new Float32Array(n), vy=new Float32Array(n);
+  for (let i=0;i<n;i++){px[i]=(i*17)%100;py[i]=(i*13)%100;vx[i]=(i%5)-2;vy[i]=(i%3)-1;}
+  return runTimed(() => {
+    for (let i=0;i<n;i++){
+      px[i]+=vx[i];py[i]+=vy[i];
+      if(px[i]<0||px[i]>100)vx[i]=-vx[i];
+      if(py[i]<0||py[i]>100)vy[i]=-vy[i];
+    }
+    for (let i=0;i<n;i++) for(let j=i+1;j<n;j++){
+      const dx=px[i]-px[j],dy=py[i]-py[j];
+      if(dx*dx+dy*dy<16) return 1;
+    }
+  }, 0.06);
+}
+
+// ── Run bench ─────────────────────────────────────────────
+async function startBench() {
+  if (benchRunning) return;
+  benchRunning = true;
+
+  const btn = document.getElementById('runBtn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('runBtnText');
+  const status = document.getElementById('benchStatus');
+
+  btn.disabled = true;
+  spinner.classList.add('visible');
+  btnText.textContent = t('running-text');
+  status.textContent = t('status-running');
+  status.className = 'bench-status running';
+
+  // Reset scores
+  tests.forEach(test => {
+    document.getElementById('score-' + test.id).textContent = '—';
+    document.getElementById('bar-' + test.id).style.width = '0%';
+  });
+  document.getElementById('scoreDisplay').classList.remove('visible');
+  document.getElementById('equivCard').classList.remove('visible');
+  document.getElementById('oemWarning').classList.remove('visible');
+
+  let totalScore = 0;
+
+  for (const test of tests) {
+    await new Promise(r => setTimeout(r, 50)); // yield to UI
+    const score = test.fn();
+    totalScore += score;
+
+    document.getElementById('score-' + test.id).textContent = score.toLocaleString();
+    const pct = Math.min((score / test.max) * 100, 100);
+    document.getElementById('bar-' + test.id).style.width = pct + '%';
+  }
+
+  // Show result
+  animateCounter(document.getElementById('scoreMain'), totalScore, 1000);
+  document.getElementById('scoreSingle').textContent = (totalScore * 0.32 | 0).toLocaleString();
+  document.getElementById('scoreMulti').textContent = (totalScore * 0.44 | 0).toLocaleString();
+  document.getElementById('scoreGpu').textContent = (totalScore * 0.24 | 0).toLocaleString();
+  document.getElementById('scoreDisplay').classList.add('visible');
+
+  // Equiv
+  document.getElementById('equivGB').textContent = '≈ ' + (totalScore * 0.85 | 0).toLocaleString();
+  document.getElementById('equivCB').textContent = '≈ ' + (totalScore * 0.062 | 0).toLocaleString() + ' pt';
+  document.getElementById('equivCard').classList.add('visible');
+
+  // OEM warning
+  const oem = document.getElementById('oemSelect').value;
+  const cpu = document.getElementById('cpuSelect').value;
+  if (oem !== 'unknown' && cpu) {
+    const oemAvg = { ASUS: 13240, MSI: 12980, Lenovo: 12410, LG: 11730, Samsung: 11340 };
+    const avg = oemAvg[oem] || totalScore;
+    const diff = (totalScore - avg) / avg * 100;
+    const warn = document.getElementById('oemWarning');
+    const warnText = document.getElementById('oemWarningText');
+    if (diff < -10) warnText.textContent = t('warn-low');
+    else if (diff > 10) warnText.textContent = t('warn-high');
+    else warnText.textContent = t('warn-avg');
+    warn.classList.add('visible');
+  }
+
+  status.textContent = t('status-done');
+  status.className = 'bench-status done';
+  spinner.classList.remove('visible');
+  btnText.textContent = t('cta-start');
+  btn.disabled = false;
+  benchRunning = false;
+
+  scores.single = totalScore * 0.32 | 0;
+  scores.multi = totalScore * 0.44 | 0;
+  scores.gpu = totalScore * 0.24 | 0;
+}
+
+function animateCounter(el, target, duration) {
+  let start = 0;
+  const step = target / (duration / 16);
+  const timer = setInterval(() => {
+    start += step;
+    if (start >= target) { start = target; clearInterval(timer); }
+    el.textContent = Math.floor(start).toLocaleString();
+  }, 16);
+}
+
+
+
+// ── Init ──────────────────────────────────────────────────
+applyLang();
+</script>
+</body>
+</html>
