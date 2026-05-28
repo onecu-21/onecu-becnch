@@ -27,6 +27,7 @@ jobs:
             -s MODULARIZE=1 \
             -s EXPORT_NAME='BenchModule' \
             -lm
+          ls -la
 
       - name: Deploy to Pages
         uses: peaceiris/actions-gh-pages@v4
