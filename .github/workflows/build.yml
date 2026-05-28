@@ -1,0 +1,33 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Emscripten
+        run: |
+          sudo apt-get install -y emscripten
+
+      - name: Compile WASM
+        run: |
+          emcc bench.c \
+            -O3 \
+            -o bench.js \
+            -s WASM=1 \
+            -s EXPORTED_FUNCTIONS='["_bench_aes","_bench_sort","_bench_matrix","_bench_raycast","_bench_json","_bench_blur","_bench_noise","_bench_physics"]' \
+            -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
+            -s MODULARIZE=1 \
+            -s EXPORT_NAME='BenchModule' \
+            -lm
+
+      - name: Deploy to Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
